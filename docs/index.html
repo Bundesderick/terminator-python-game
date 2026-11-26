@@ -949,8 +949,8 @@ if player_hp > 0:
       statusEl.textContent = "AWAITING INPUT";
       inputEl.focus();
 
-      return new Promise((resolve, reject) => {
-        pendingResolver = { resolve, reject, token: myToken };
+      return new Promise((resolve) => {
+        pendingResolver = { resolve, token: myToken };
       });
     };
 
@@ -1018,8 +1018,9 @@ def _compile_async_game(source_code):
     async function runGame() {
       const myToken = ++runToken;
       if (pendingResolver) {
-        pendingResolver.reject(new Error("Restarted"));
+        const prev = pendingResolver;
         pendingResolver = null;
+        prev.resolve(null);
       }
 
       outputEl.innerHTML = "";
@@ -1039,8 +1040,14 @@ def _compile_async_game(source_code):
 
       pyodide.globals.set("current_run_token", myToken);
       await pyodide.runPythonAsync(`
+class _GameRestarted(BaseException):
+    pass
+
 async def web_input(prompt=""):
-    return await js_input(str(prompt), current_run_token)
+    res = await js_input(str(prompt), current_run_token)
+    if res is None:
+        raise _GameRestarted()
+    return res
       `);
 
       try {
@@ -1048,7 +1055,10 @@ async def web_input(prompt=""):
         await pyodide.runPythonAsync(`
 __transformed__ = _compile_async_game(__raw_source__)
 exec(__transformed__, globals())
-await __game_main__()
+try:
+    await __game_main__()
+except _GameRestarted:
+    pass
         `);
         if (myToken === runToken) {
           appendText("\n>_ [PROCESS FINISHED — CLICK RESTART TO PLAY AGAIN]\n", "line-system");
