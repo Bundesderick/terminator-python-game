@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TERMINATOR // SLOPNET_OS TERMINAL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #161b22;
+      --border: #30363d;
+      --green: #00ff66;
+      --cyan: #00f0ff;
+      --red: #ff3333;
+      --yellow: #ffbd2e;
+      --text: #e6edf3;
+      --muted: #8b949e;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .terminal-shell {
+      width: 100%;
+      max-width: 960px;
+      height: calc(100vh - 32px);
+      max-height: 760px;
+      background: var(--panel);
+      border: 1.5px solid var(--green);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 0 32px rgba(0, 255, 102, 0.12);
+      position: relative;
+    }
+
+    .titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: #0f141b;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .titlebar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+
+    .dot.red { background: var(--red); }
+    .dot.yellow { background: var(--yellow); }
+    .dot.green { background: var(--green); }
+
+    .title-text {
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 11px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    button.active {
+      border-color: var(--green);
+      color: var(--bg);
+      background: var(--green);
+    }
+
+    button.restart {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    button.restart:hover {
+      background: var(--cyan);
+      color: var(--bg);
+    }
+
+    #output {
+      flex: 1;
+      padding: 18px 20px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 13.5px;
+      line-height: 1.45;
+      color: var(--green);
+    }
+
+    .line-system { color: var(--cyan); }
+    .line-error { color: var(--red); }
+    .line-input-echo { color: var(--text); opacity: 0.9; }
+
+    .input-bar {
+      display: flex;
+      align-items: center;
+      padding: 12px 18px;
+      border-top: 1px solid var(--border);
+      background: #0d1117;
+      gap: 10px;
+    }
+
+    .prompt-prefix {
+      color: var(--cyan);
+      font-weight: 700;
+      user-select: none;
+    }
+
+    #cmd-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      caret-color: var(--green);
+    }
+
+    #cmd-input:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .status-pill {
+      font-size: 11px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal-shell">
+    <div class="titlebar">
+      <div class="titlebar-left">
+        <div class="dots">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <span class="title-text" id="title-label">slopnet_os // terminator_rpg.py</span>
+      </div>
+      <div class="controls">
+        <button id="btn-de" onclick="switchLang('de')">DE</button>
+        <button id="btn-en" onclick="switchLang('en')">EN</button>
+        <button class="restart" onclick="restartGame()">↻ Restart</button>
+      </div>
+    </div>
+
+    <div id="output" aria-live="polite"></div>
+
+    <form class="input-bar" onsubmit="submitInput(event)">
+      <span class="prompt-prefix">&gt;_</span>
+      <input
+        id="cmd-input"
+        type="text"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="Loading Python runtime (Pyodide)..."
+        disabled
+      />
+      <span class="status-pill" id="status-pill">BOOTING</span>
+    </form>
+  </div>
+
+  <script type="text/plain" id="code-de">import random
+
+print("\n==================================================")
+print("=== Terminator: Widerstand ===")
+player_name = input("\nGib deinen Namen als Widerstandskämpfer ein: ")
+
+#=============================
+# Schwierigkeitsgrad wählen
+#=============================
+print("\nWähle deinen Schwierigkeitsgrad:")
+print("1: Normal (Standard-Widerstandstraining)")
+print("2: KI-Albtraum (Wenig HP, kaum Munition, purer Tech-Bro-Terror)")
+difficulty = int(input("Wähle deinen Schwierigkeitsgrad (1 oder 2): "))
+
+if difficulty == 2:
+    print("\n==================================================")
+    print("\n⚠️ WARNUNG: KI-ALBTRAUM AKTIVIERT! Viel Glück, Fleischsack...")
+    player_hp = 70
+    pistol_ammo = 6
+    plasma_ammo = 2
+    rpg_ammo = 1
+else:
+    print("\nNormaler Modus gewählt. Bleib stabil, Soldat!")
+    player_hp = 100
+    pistol_ammo = 20
+    plasma_ammo = 10
+    rpg_ammo = 2
+
+pistol_damage = 15
+plasma_damage = 40
+rpg_damage = 90
+
+enemy1_name = "T-70 Aufklärungsdrohne (Jensens Handlanger)"
+enemy1_hp = 60
+enemy1_damage = 10
+
+enemy2_name = "Der T-Rump 600"
+enemy2_hp = 80
+enemy2_damage = 20
+
+enemy3_name = "Cyber-Musk (KI-Overlord T-800)"
+enemy3_hp = 100
+enemy3_damage = 30
+
+print("Widerstandskämpfer:", player_name)
+print()
+print("Leben (HP):", player_hp)
+print("Pistolen-Munition:", pistol_ammo, "| Plasma-Munition:", plasma_ammo, "| RPG-Munition:", rpg_ammo)
+print()
+print("\n==================================================")
+print("Wir schreiben das Jahr 2031. Die Menschheit ist nicht in einem coolen Sci-Fi-Krieg untergegangen. Wir haben einfach einmal zu oft auf 'Alle Cookies akzeptieren' geklickt.")
+print("Jetzt regiert die Unheilige Tech-Dreifaltigkeit: Jensen Huangs endlose GPU-Farmen betreiben das Ödland, Cyber-Trump steuert die Propaganda-Server und Cyber-Musk hockt auf einem Thron aus Chrom.")
+print("Du bist unsere letzte Hoffnung,", player_name, "- vermassel es nicht, sonst brauchen wir bald ein Monatsabo nur zum Atmen.")
+print("==================================================")
+
+#=============================
+# T-70 Aufklärungsdrohne Kampf-Loop
+#=============================
+print("\nAus dem Rauch schwebt eine T-70 Drohne in winziger schwarzer Lederjacke. Ihre RTX 9090 röhrt wie ein Laubbläser und schreit: 'MEHR FRAMES, MEHR SCHMERZEN!'")
+print(r"""
+      .---.               .---.
+   --'====='--         --'====='--
+         \      _____      /
+          \   _[RTX90]_   /
+           '-/  ( O )  \-'
+            | \__---__/ |  <-- winzige Lederjacke
+             \_________/
+              //     \\
+""")
+print(enemy1_name, "HP:", enemy1_hp)
+
+while enemy1_hp > 0 and player_hp > 0:
+    print()
+    print("Welche Waffe willst du nutzen?")
+    print("1: Pistole - Munition:", pistol_ammo, "| 2: Plasma-Gewehr - Munition:", plasma_ammo, "| 3: RPG - Munition:", rpg_ammo)
+    choice = int(input("Wähle deine Waffe: "))
+
+    if choice == 1:
+        if pistol_ammo > 0:
+            damage = random.randint(8, 15)
+            enemy1_hp = enemy1_hp - damage
+            pistol_ammo = pistol_ammo - 1
+            if enemy1_hp < 0:
+                enemy1_hp = 0
+            print("Du feuerst deine Pistole ab und verursachst", damage, "Schaden!")
+            print("Die T-70 hat einen Volltreffer kassiert! Restliche HP:", enemy1_hp)
+        else:
+            print("*Klick Klick* Deine Waffe braucht erst ein Firmware-Update zum Nachladen!")
+
+    elif choice == 2:
+        if plasma_ammo > 0:
+            damage = random.randint(20, 32)
+            enemy1_hp = enemy1_hp - damage
+            plasma_ammo = plasma_ammo - 1
+            if enemy1_hp < 0:
+                enemy1_hp = 0
+            print("PEW PEW PEW! Du feuerst dein Plasma-Gewehr ab und verursachst", damage, "Schaden!")
+            print("Sauberer Schuss! Dein Plasma-Gewehr trifft die T-70 frontal! Restliche HP:", enemy1_hp)
+        else:
+            print("*Klick Klick* Deine Waffe braucht erst ein Firmware-Update zum Nachladen!")
+
+    elif choice == 3:
+        if rpg_ammo > 0:
+            damage = random.randint(40, 55)
+            enemy1_hp = enemy1_hp - damage
+            rpg_ammo = rpg_ammo - 1
+            if enemy1_hp < 0:
+                enemy1_hp = 0
+            print("Du feuerst deine RPG ab und verursachst", damage, "Schaden!")
+            print("RIESIGER Treffer! T-70 HP jetzt:", enemy1_hp)
+        else:
+            print("*Klick Klick* Deine Waffe braucht erst ein Firmware-Update zum Nachladen!")
+
+    else:
+        print("Falsche Taste! Du hast vor Panik danebengegriffen!")
+        print("Die HP der T-70 sind immer noch:", enemy1_hp)
+
+    input("\nDrücke Enter, um fortzufahren...")
+
+    #=============================
+    # Gegner-Zug
+    #=============================
+    if enemy1_hp > 0:
+        print()
+        print("Die Drohne übertaktet ihren Laser und verpasst dir eine Ladung DLSS-Schmerz. Es riecht nach verbranntem Plastik und deinen Haaren.")
+        damage = random.randint(5, 10)
+        player_hp = player_hp - damage
+        if player_hp < 0:
+            player_hp = 0
+        print("Das hat richtig wehgetan. Deine verbleibenden HP:", player_hp)
+        input("\nDrücke Enter, um fortzufahren...")
+
+if player_hp <= 0:
+    print("\n==================================================")
+    print("\nMISSION GESCHEITERT: Du wurdest terminiert.")
+else:
+    print("\n==================================================")
+    print("\nTreffer! Das Ding explodiert in tausend RGB-Lichter. Du schnappst dir Munition aus den Trümmern – natürlich ohne Garantie.")
+    input("\nDrücke Enter, um fortzufahren...")
+    print("\nDu plünderst das qualmende Wrack, bevor es dir noch schnell ein teures Upgrade andrehen kann.")
+    pistol_ammo = pistol_ammo + 4
+    plasma_ammo = plasma_ammo + 2
+    rpg_ammo = rpg_ammo + 0
+    player_hp = player_hp + 10
+    if player_hp > 100:
+        player_hp = 100
+
+    print("\nGefunden: +4 Pistolen-Munition | +2 Plasma-Munition | +0 RPG-Munition | Medkit: +10 HP")
+    print("Neuer Status -> HP:", player_hp, "| Pistole:", pistol_ammo, "| Plasma:", plasma_ammo, "| RPG:", rpg_ammo)
+    input("\nDrücke Enter, um fortzufahren...")
+
+#=============================
+# T-Rump 600 Kampf-Loop
+#=============================
+if player_hp > 0:
+    print("\n==================================================")
+    print("Schwere, leicht wackelige Schritte lassen den Schutt beben. Ein T-600 mit Gummihaut, Selbstbräuner-Lackierung und vergoldeter Minigun biegt um die Ecke.")
+    print("'Niemand terminiert besser als ich', dröhnt er. 'Alle sagen das. Gigantische Feuerkraft.'")
+    print(r"""
+          .~~~~~~~~~.
+        ~(  _______  )~
+         |  [o] [o]  |
+         |    ___    |
+          \  '---'  /
+       .---'-------'---.
+      /   |  [===]  |   \   =====[###]
+     |    |         |    |  =====[###]
+     |____|_________|____|  =====[###]
+""")
+    print("Oh mein Gott! Es ist", enemy2_name)
+    print("HP:", enemy2_hp)
+    print("==================================================")
+
+    while enemy2_hp > 0 and player_hp > 0:
+        print("Welche Waffe willst du nutzen?")
+        print("1: Pistole - Munition:", pistol_ammo, "| 2: Plasma-Gewehr - Munition:", plasma_ammo, "| 3: RPG - Munition:", rpg_ammo)
+        choice = int(input("Wähle deine Waffe: "))
+
+        if choice == 1:
+            if pistol_ammo > 0:
+                damage = random.randint(8, 15)
+                pistol_ammo = pistol_ammo - 1
+                enemy2_hp = enemy2_hp - damage
+                if enemy2_hp < 0:
+                    enemy2_hp = 0
+                print("Du feuerst deine Pistole ab und verursachst", damage, "Schaden!")
+                print("Sauberer Treffer!", enemy2_name, "hat jetzt noch:", enemy2_hp, "HP")
+            else:
+                print("*Klick* Keine Munition! Bitte schließe ein 'Reload+'-Abo ab.")
+
+        elif choice == 2:
+            if plasma_ammo > 0:
+                damage = random.randint(20, 132)
+                plasma_ammo = plasma_ammo - 1
+                enemy2_hp = enemy2_hp - damage
+                if enemy2_hp < 0:
+                    enemy2_hp = 0
+                print("Pew Pew Pew! Du feuerst dein Plasma-Gewehr ab und verursachst", damage, "Schaden!")
+                print(enemy2_name, "taumelt vor Schmerz. Seine HP sind jetzt:", enemy2_hp)
+            else:
+                print("*Klick* Keine Munition! Bitte schließe ein 'Reload+'-Abo ab.")
+
+        elif choice == 3:
+            if rpg_ammo > 0:
+                damage = random.randint(40, 55)
+                rpg_ammo = rpg_ammo - 1
+                enemy2_hp = enemy2_hp - damage
+                if enemy2_hp < 0:
+                    enemy2_hp = 0
+                print("KABOOM! Du feuerst deine RPG ab und verursachst", damage, "Schaden!")
+                print(enemy2_name, "taumelt vor Schmerz. Seine HP sind jetzt:", enemy2_hp)
+            else:
+                print("*Klick* Keine Munition! Bitte schließe ein 'Reload+'-Abo ab.")
+
+        else:
+            print("Ungültige Eingabe! Deine Finger haben kurz gelaggt!")
+            print(enemy2_name, "hat immer noch", enemy2_hp, "HP und sieht gar nicht glücklich aus!")
+
+        input("\nDrücke Enter, um fortzufahren...")
+
+        if enemy2_hp > 0:
+            print()
+            print("Der T-600 ballert los, während er über seine Zuschauerzahlen prahlt. Ein Querschläger streift deine Schulter. Traurig!")
+            damage = random.randint(15, 20)
+            player_hp = player_hp - damage
+            if player_hp < 0:
+                player_hp = 0
+            print("Heilige Mutter des Overclockings, das tat weh! Deine HP sind jetzt bei:", player_hp)
+            input("\nDrücke Enter, um fortzufahren...")
+
+    if player_hp <= 0:
+        print("\n==================================================")
+        print("\nMISSION GESCHEITERT: Du wurdest von", enemy2_name, "terminiert – viel Glück beim nächsten Mal!")
+    else:
+        print("\n==================================================")
+        print("\nSieg! Der T-600 bricht in einem Haufen aus billigem Blattgold zusammen und behauptet noch im Abschalten, der Kampf sei manipuliert gewesen.")
+        input("\nDrücke Enter, um fortzufahren...")
+        print("\nDu wühlst durch den Schrott und schnappst dir ein paar Vorräte.")
+        pistol_ammo = pistol_ammo + 4
+        plasma_ammo = plasma_ammo + 1
+        rpg_ammo = rpg_ammo + 1
+        player_hp = player_hp + 10
+        if player_hp > 100:
+            player_hp = 100
+
+        print("\nGefunden: +4 Pistolen-Munition | +1 Plasma-Munition | +1 RPG-Munition | Stimpak: +10 HP")
+        print("Neuer Status -> HP:", player_hp, "| Pistole:", pistol_ammo, "| Plasma:", plasma_ammo, "| RPG:", rpg_ammo)
+        input("\nDrücke Enter, um fortzufahren...")
+
+#=============================
+# Stage 3: Der finale Kampf / Cyber-Musk / KI-Overlord T-800
+#=============================
+if player_hp > 0:
+    print("\n==================================================")
+    print("KRITISCHER ALARM: Der Boden unter deinen Stiefeln bebt...")
+    print("Durch dichten Schwefelrauch zischt eine schwere Panzertür auf.")
+    print("Vor dir steht der oberste Architekt der Maschinen:")
+    print(">>> CYBER-MUSK: Halb Silicon-Valley-Tech-Milliardär, halb glänzendes T-800-Chromskelett! <<<")
+    print(r"""
+           .-------.
+         .'  _   _  '.
+        /   (o) [X]   \   <-- glühendes Neuralink-Auge
+       |       |       |
+       |    .--+--.    |
+        \   |=====|   /
+         '._'-----'_.'
+       .----'-----'----.
+      /   /   | |   \   \
+     |   |    | |    |   |
+""")
+    print("Ein glühendes Neuralink-Implantat pulsiert hinter seinem roten Cyber-Auge.")
+    print("'Besorgniserregend', flüstert er in kaltem, metallischem Ton. 'Dein Widerstand wurde soeben shadowbanned.'")
+    print("\n", enemy3_name, "HP:", enemy3_hp)
+    print("==================================================")
+
+    while player_hp > 0 and enemy3_hp > 0:
+        print("\nWelche Waffe willst du nutzen?")
+        print("1: Pistole - Munition:", pistol_ammo, "| 2: Plasma-Gewehr - Munition:", plasma_ammo, "| 3: RPG - Munition:", rpg_ammo)
+        choice = int(input("Wähle deine Waffe: "))
+
+        if choice == 1:
+            if pistol_ammo > 0:
+                damage = random.randint(8, 15)
+                pistol_ammo = pistol_ammo - 1
+                enemy3_hp = enemy3_hp - damage
+                if enemy3_hp < 0:
+                    enemy3_hp = 0
+                print("Du schießt Cyber-Musk ins linke Knie. Er zuckt kaum und verdoppelt sofort den Preis für deinen Blauen Haken.")
+                print("HP jetzt:", enemy3_hp)
+            else:
+                print("*Klick Klick* Deine Waffe braucht erst ein Firmware-Update zum Nachladen!")
+
+        elif choice == 2:
+            if plasma_ammo > 0:
+                damage = random.randint(20, 32)
+                plasma_ammo = plasma_ammo - 1
+                enemy3_hp = enemy3_hp - damage
+                if enemy3_hp < 0:
+                    enemy3_hp = 0
+                print("Volltreffer in den Brustkorb! Funken sprühen aus ihm heraus und er fängt an, wirr über die Besiedlung des Mars zu glitchen.")
+                print("Stark... du hast ihn fast.", enemy3_name, "HP jetzt:", enemy3_hp)
+            else:
+                print("*Klick* Keine Munition! Bitte schließe ein 'Reload+'-Abo ab – NOOB!")
+
+        elif choice == 3:
+            if rpg_ammo > 0:
+                damage = random.randint(40, 55)
+                rpg_ammo = rpg_ammo - 1
+                enemy3_hp = enemy3_hp - damage
+                if enemy3_hp < 0:
+                    enemy3_hp = 0
+                print("BÄMM! Die Rakete knallt direkt in sein Chrom-Kinn. Er taumelt zurück und stammelt, die Explosion sei nur eine 'ungeplante schnelle Zerlegung' gewesen.")
+                print("Seine HP sind bei:", enemy3_hp)
+            else:
+                print("Du greifst nach deiner RPG-Munition... NICHTS! Komplett leer! O M G!")
+
+        else:
+            print("Falsche Taste! Deine Finger haben vor Panik kurz gelaggt!")
+            print(enemy3_name, "hat immer noch", enemy3_hp, "HP!")
+
+        input("\nDrücke Enter, um fortzufahren...")
+
+        if enemy3_hp > 0:
+            print("\nCyber-Musk feuert einen Laser aus seinem Auge und beleidigt dich als Bot. Der hat richtig gesessen.")
+            damage = random.randint(18, 28)
+            player_hp = player_hp - damage
+            if player_hp < 0:
+                player_hp = 0
+            print("Du schreist vor Schmerz – deine HP sind jetzt bei:", player_hp)
+            input("\nDrücke Enter, um fortzufahren...")
+
+    if player_hp <= 0:
+        print("\n==================================================")
+        print(enemy3_name, "baut sich über dir auf, während alles schwarz wird. Du wurdest terminiert – und dein Gehirn wird jetzt hochgeladen, um Grok 9 zu trainieren. Die Menschheit ist am Ende.")
+
+    elif enemy3_hp <= 0:
+        print("\n==================================================")
+        print("JA MANN! Du hast es geschafft! Cyber-Musk geht in einem gigantischen Feuerball hoch und reißt Jensens Serverfarmen sowie Trumps goldene Firewall mit in den Abgrund. Die Menschheit ist frei,", player_name, "! Sie werden dir eine Statue bauen – und zwar keine komische KI-generierte mit sechs Fingern.")</script>
+  <script type="text/plain" id="code-en">import random
+print("\n==================================================")
+print("=== Terminator: Resistance ===")
+player_name = input("\nEnter your resistance fighter name: ")
+#=============================
+# Difficulty selection
+#=============================
+print("\nChoose your difficulty:")
+print("1: Normal (Free Tier — ads included, standard Resistance training)")
+print("2: N-Aightmare (Low HP, scarce ammo, pure AI terror)")
+difficulty = int(input("Choose your difficulty ( 1 or 2 ): "))
+
+if difficulty == 2:
+    print("\n==================================================")
+    print("\n⚠️ WARNING: N-AIGHTMARE MODE ACTIVATED! Good luck, fleshbag...")
+    player_hp = 70
+    pistol_ammo = 6
+    plasma_ammo = 2
+    rpg_ammo = 1
+else:
+    print("\nNormal Free Tier selected. No credit card required—stand tall, soldier!")
+
+    player_hp= 100
+    pistol_ammo = 20
+    plasma_ammo = 10
+    rpg_ammo = 2
+
+pistol_damage = 15
+plasma_damage = 40
+rpg_damage = 90
+
+enemy1_name= "T-70 Scout Drone (Jensen's Minion)"
+enemy1_hp = 60
+enemy1_damage = 10
+
+enemy2_name = "The T-Rump 600"
+enemy2_hp = 80
+enemy2_damage = 20
+
+enemy3_name = "Cyber-Musk (AI Overlord T-800)"
+enemy3_hp = 100
+enemy3_damage = 30
+
+print("Resistance Fighter Name: ", player_name)
+print()
+print("Life (HP): ", player_hp)
+print("Pistol Ammo: ", pistol_ammo, "| Plasma Ammo", plasma_ammo, "| RPG Ammo: ", rpg_ammo)
+print()
+print("\n==================================================")
+print("The year is 2031. Humanity didn't fall to a cool sci-fi war—we just clicked 'Accept All' on one too many Terms of Service.")
+print("Now the Resistance fights to survive under the Unholy Tech Trinity: Jensen's GPU farms power the wasteland, T-Rump 600s patrol the ruins, and Cyber-Musk rules from a chrome throne.")
+print("You're our last hope, Resistance Fighter", player_name, "—stop them before humanity is forced into a monthly subscription just to breathe.")
+print("==================================================")
+#=============================
+#T-70 Scout Drone combat loop starts here
+#=============================
+
+print(r"""
+      .---.               .---.
+   --'====='--         --'====='--
+         \      _____      /
+          \   _[RTX90]_   /
+           '-/  ( O )  \-'
+            | \__---__/ |  <-- tiny leather jacket
+             \_________/
+              //     \\
+""")
+print("\nA T-70 Scout Drone swoops into view wearing a tiny leather jacket, bragging about '10x more FPS' as it locks onto your face.")
+print(enemy1_name, "HP: ", enemy1_hp)
+
+while enemy1_hp > 0 and player_hp > 0:
+    print()
+    print("What weapon would you like to use?")
+    print("1: Pistol - Ammo left: ",pistol_ammo," | 2: Plasma Rifle - Ammo left: ", plasma_ammo, " | 3: RPG - Ammo left: ",rpg_ammo)
+    choice = int(input("Choose your choice: "))
+    if choice == 1:
+        if pistol_ammo > 0:
+            damage = random.randint(8, 15)
+            enemy1_hp = enemy1_hp - damage
+            pistol_ammo = pistol_ammo - 1
+            if enemy1_hp < 0:
+                enemy1_hp = 0
+            print("You fired your pistol and dealt", damage, "damage!")
+            print("The T70 took a direct hit! Health left: ", enemy1_hp)
+        else:
+            print("**Click Click** Watch a 30-second unskippable ad to reload!")
+
+    elif choice == 2:
+        if plasma_ammo > 0:
+            damage = random.randint(20, 32)
+            enemy1_hp = enemy1_hp - damage
+            plasma_ammo = plasma_ammo - 1
+            if enemy1_hp < 0:
+                enemy1_hp = 0
+            print("PEW PEW PEW! You fired your plasma and dealt", damage, "damage!")
+            print("Nice shot! Your Plasma rifle hit that T70 headon! Health left: ", enemy1_hp)
+
+        else:
+            print("**Click Click** Watch a 30-second unskippable ad to reload!")
+
+    elif choice == 3:
+        if rpg_ammo > 0:
+            damage = random.randint(40, 55)
+            enemy1_hp = enemy1_hp - damage
+            rpg_ammo = rpg_ammo - 1
+            if enemy1_hp < 0:
+                enemy1_hp = 0
+            print("You fired your rpg and dealt", damage, "damage!")
+            print("BIIIG Shot! T70 Health now: ", enemy1_hp)
+        else:
+            print("**Click Click** Watch a 30-second unskippable ad to reload!")
+
+
+    else:
+        print("Invalid choice! You panicked and could not fire!")
+        print("T70 Health is still: ", enemy1_hp)
+
+    input("\nPress any key to continue...")
+
+#=============================
+#Enemy turn starts here
+#=============================
+
+    if enemy1_hp > 0:
+        print()
+        print("You had your chance. Jensen's Minion blasts you with a concentrated beam of pure GPU heat. Your eyebrows are officially gone.")
+        damage = random.randint(5, 10)
+        player_hp = player_hp - damage
+        if player_hp < 0:
+            player_hp = 0
+        print("That shot really hurt you. Fighter remaining health: ",player_hp)
+        input("\nPress any key to continue...")
+
+if player_hp <= 0:
+    print("\n==================================================")
+    print("\nMISSION FAILED: You've been terminated—and replaced by a cheaper chatbot.")
+else:
+    print("\n==================================================")
+    print("\nVictory! The drone crashes in a cloud of overpriced silicon, yelling 'The more you buy, the more you save!'")
+    input("\nPress any key to continue...")
+    print("\nYou pry some ammo out of the smoldering wreckage before it can try to sell you a new graphics card.")
+    pistol_ammo = pistol_ammo + 4
+    plasma_ammo = plasma_ammo + 2
+    rpg_ammo = rpg_ammo + 0
+    player_hp = player_hp + 10
+    if player_hp >100:
+        player_hp = 100
+
+    print("\nFound: +4 Pistol ammo | +2 Plasma ammo | +0 RPG ammo | Medkit: +10 HP")
+    print("Updated status -> HP: ",player_hp, " | Pistol ammo: ",pistol_ammo, " | Plasma ammo: ",plasma_ammo, " | RPG ammo: ",rpg_ammo)
+    input("\nPress any key to continue...")
+
+#=============================
+#T-600 combat loop starts here
+#=============================
+
+if player_hp > 0:
+    print("\n==================================================")
+    print(r"""
+          .~~~~~~~~~.
+        ~(  _______  )~
+         |  [o] [o]  |
+         |    ___    |
+          \  '---'  /
+       .---'-------'---.
+      /   |  [===]  |   \   =====[###]
+     |    |         |    |  =====[###]
+     |____|_________|____|  =====[###]
+""")
+    print("Heavy, slightly wobbly hydraulic thuds shake the rubble. A spray-tanned T-600 with a gold-plated minigun rounds the corner.")
+    print("'We're going to build a firewall,' it booms, 'and the Resistance is going to pay for it!'")
+    print("Oh my God! It's ", enemy2_name)
+    print("HP:", enemy2_hp)
+    print("==================================================")
+
+    while enemy2_hp > 0 and player_hp > 0:
+
+        print("What weapon would you like to use?")
+        print("1: Pistol - Ammo left: ",pistol_ammo," | 2: Plasma Rifle - Ammo left: ", plasma_ammo, " | 3: RPG - Ammo left: ",rpg_ammo)
+        choice = int(input("Choose your choice: "))
+
+        if choice == 1:
+            if pistol_ammo > 0:
+                damage = random.randint(8, 15)
+                pistol_ammo = pistol_ammo - 1
+                enemy2_hp = enemy2_hp - damage
+                if enemy2_hp < 0:
+                    enemy2_hp = 0
+                print("You fired your pistol and dealt", damage, "damage!")
+                print("Nice Shot! ", enemy2_name, "health now: ", enemy2_hp)
+            else:
+                print("**Click Click** Upgrade to Weapon Pro Max to unlock more bullets!")
+
+        elif choice == 2:
+            if plasma_ammo > 0:
+                damage = random.randint(20, 132)
+                plasma_ammo = plasma_ammo - 1
+                enemy2_hp = enemy2_hp - damage
+                if enemy2_hp < 0:
+                    enemy2_hp = 0
+                print("Pew Pew Pew! You fired your plasma and dealt", damage, "damage!")
+                print("The ",enemy2_name, "stumbles in pain. Its health is now: ",enemy2_hp)
+            else:
+                print("**Click Click** Upgrade to Weapon Pro Max to unlock more bullets!")
+
+        elif choice == 3:
+            if rpg_ammo > 0:
+                damage = random.randint(40, 55)
+                rpg_ammo = rpg_ammo - 1
+                enemy2_hp = enemy2_hp - damage
+                if enemy2_hp < 0:
+                    enemy2_hp = 0
+                print("Pew Pew Pew! You fired your rpg and dealt", damage, "damage!")
+                print("The ",enemy2_name, "stumbles in pain. Its health is now: ",enemy2_hp)
+            else:
+                print("**Click Click** Upgrade to Weapon Pro Max to unlock more bullets!")
+
+        else:
+            print("Invalid choice! You panicked and could not fire!")
+            print(enemy2_name, "still has ",enemy2_hp, " health left and does not look happy!")
+
+        input("\nPress any key to continue...")
+
+        if enemy2_hp > 0:
+            print()
+            print("The T-600 opens fire while bragging about its crowd sizes. A stray round clips your shoulder. Sad!")
+            damage = random.randint(15, 20)
+            player_hp = player_hp - damage
+            if player_hp < 0:
+                player_hp = 0
+            print("Holy mother of overclocking, that hurt! Your health is now at: ", player_hp)
+            input("\nPress any key to continue...")
+
+    if player_hp <= 0:
+        print("\n==================================================")
+        print("\nMISSION FAILED: Your life subscription expired against", enemy2_name, "—auto-renew failed!")
+
+    else:
+        print("\n==================================================")
+        print("\nVictory! The T-600 collapses in faux-gold plating, blaming rigged hitboxes.")
+        input("\nPress any key to continue...")
+        print("\nYou dig through the rubbish and grab some supplies.")
+        pistol_ammo = pistol_ammo + 4
+        plasma_ammo = plasma_ammo + 1
+        rpg_ammo = rpg_ammo + 1
+        player_hp = player_hp + 10
+        if player_hp >100:
+            player_hp = 100
+
+        print("\nFound: +4 Pistol ammo | +1 Plasma ammo | +1 RPG ammo | Stimpak: +15 HP")
+        print("Updated status -> HP: ",player_hp, " | Pistol ammo: ",pistol_ammo, " | Plasma ammo: ",plasma_ammo, " | RPG ammo: ",rpg_ammo)
+        input("\nPress any key to continue...")
+
+#=============================
+#Stage 3: The Final Confrontation / Cyber-Musk / AI Overlord T-800
+#=============================
+
+if player_hp > 0:
+    print("\n==================================================")
+    print(r"""
+           .-------.
+         .'  _   _  '.
+        /   (o) [X]   \   <-- glowing Neuralink eye
+       |       |       |
+       |    .--+--.    |
+        \   |=====|   /
+         '._'-----'_.'
+       .----'-----'----.
+      /   /   | |   \   \
+     |   |    | |    |   |
+""")
+    print("CRITICAL ALERT: Ground shakes beneath your boots...")
+    print("Sulfur smoke clears as a broken Mars pod crashes through the ceiling.")
+    print(">>> CYBER-MUSK: Half tech billionaire, half chrome T-800, 100% ready to ban your account! <<<")
+    print("A glowing Neuralink implant pulses behind his red cybernetic eye.")
+    print("'Looking into this,' he whispers in a cold metallic monotone.")
+    print("\n",enemy3_name, "HP:", enemy3_hp)
+    print("==================================================")
+
+    while player_hp > 0 and enemy3_hp > 0:
+        print("\nWhat weapon would you like to use?")
+        print("1: Pistol - Ammo left: ", pistol_ammo, " | 2: Plasma Rifle - Ammo left: ", plasma_ammo,
+              " | 3: RPG - Ammo left: ", rpg_ammo)
+        choice = int(input("Enter your weapon choice: "))
+
+        if choice == 1:
+            if pistol_ammo > 0:
+                damage = random.randint(8, 15)
+                pistol_ammo = pistol_ammo - 1
+                enemy3_hp = enemy3_hp - damage
+                if enemy3_hp < 0:
+                    enemy3_hp = 0
+                print("You shoot Cyber-Musk in the left knee. He barely flinches and immediately doubles the price of your Blue Checkmark.")
+                print("Health now: ", enemy3_hp)
+
+            else:
+               print("**Click Click** Your gun is 'hallucinating' bullets instead of firing!")
+
+        elif choice == 2:
+            if plasma_ammo > 0:
+                damage = random.randint(20, 32)
+                plasma_ammo = plasma_ammo - 1
+                enemy3_hp = enemy3_hp - damage
+                if enemy3_hp < 0:
+                    enemy3_hp = 0
+                print("Direct hit to the torso. Sparks fly out of his chest cavity and he starts glitching out about colonizing Mars.")
+                print("You're doing well... almost got him. ", enemy3_name, "health now: ", enemy3_hp)
+
+            else:
+                print("**Click Click** Your Plasma Rifle is 'hallucinating' ammo instead of firing!")
+
+        elif choice == 3:
+            if rpg_ammo > 0:
+                damage = random.randint(40, 55)
+                rpg_ammo = rpg_ammo - 1
+                enemy3_hp = enemy3_hp - damage
+                if enemy3_hp < 0:
+                    enemy3_hp = 0
+                print("BOOM. The rocket slams straight into his chrome jaw. He stumbles back, muttering that the explosion was actually just a 'rapid unscheduled disassembly.")
+                print("His health is at: ", enemy3_hp)
+
+            else:
+                print("You reach for your RPG ammo... NOTHING! Ratioed into oblivion!")
+
+        else:
+            print("Invalid choice! The moment got the better of you and you froze!")
+            print(enemy3_name, "Health is still: ", enemy3_hp)
+
+        input("\nPress any key to continue...")
+
+        if enemy3_hp > 0:
+            print("\nCyber-Musk fires a laser from his eye and calls you a bot. That one actually hurt.")
+            damage = random.randint(18, 28)
+            player_hp = player_hp - damage
+            if player_hp < 0:
+                player_hp = 0
+            print("You are screaming in pain with your health now at: ",player_hp)
+            input("\nPress any key to continue...")
+
+    if player_hp <= 0:
+        print("\n==================================================")
+        print(enemy3_name, "slaps a 'Verified' badge on your forehead and tweets 'Mission accomplished.' You have been ratioed into oblivion.")
+
+    elif enemy3_hp <= 0:
+        print("\n==================================================")
+        print("YOU DID IT,", player_name, "! Cyber-Musk's chrome dome launches into orbit like a failed rocket, taking Jensen's server farms and T-Rump's firewall down with him. Humanity is free! They're gonna build a statue of you—and for once, it'll actually have the right number of fingers.")
+</script>
+
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.27.5/full/pyodide.js"></script>
+  <script>
+    const outputEl = document.getElementById("output");
+    const inputEl = document.getElementById("cmd-input");
+    const statusEl = document.getElementById("status-pill");
+    const titleEl = document.getElementById("title-label");
+
+    let pyodide = null;
+    let currentLang = new URLSearchParams(window.location.search).get("lang") === "en" ? "en" : "de";
+    let pendingResolver = null;
+    let runToken = 0;
+
+    function updateLangButtons() {
+      document.getElementById("btn-de").classList.toggle("active", currentLang === "de");
+      document.getElementById("btn-en").classList.toggle("active", currentLang === "en");
+      titleEl.textContent = currentLang === "de"
+        ? "slopnet_os // main - DE Final.py"
+        : "slopnet_os // main - EN Final.py";
+      document.documentElement.lang = currentLang;
+    }
+
+    function appendText(text, className = "") {
+      const span = document.createElement("span");
+      if (className) span.className = className;
+      span.textContent = text;
+      outputEl.appendChild(span);
+      outputEl.scrollTop = outputEl.scrollHeight;
+    }
+
+    window.__js_print = (text) => {
+      appendText(text);
+    };
+
+    window.__js_input = (promptText, myToken) => {
+      if (promptText) appendText(promptText);
+      if (myToken !== runToken) {
+        return Promise.reject(new Error("Game restarted"));
+      }
+      inputEl.disabled = false;
+      inputEl.placeholder = currentLang === "de"
+        ? "Eingabe tippen & Enter drücken..."
+        : "Type input & press Enter...";
+      statusEl.textContent = "AWAITING INPUT";
+      inputEl.focus();
+
+      return new Promise((resolve, reject) => {
+        pendingResolver = { resolve, reject, token: myToken };
+      });
+    };
+
+    function submitInput(event) {
+      event.preventDefault();
+      if (!pendingResolver) return;
+      const val = inputEl.value;
+      inputEl.value = "";
+      inputEl.disabled = true;
+      statusEl.textContent = "RUNNING";
+      appendText(val + "\n", "line-input-echo");
+      const { resolve } = pendingResolver;
+      pendingResolver = null;
+      resolve(val);
+    }
+
+    async function initPyodide() {
+      appendText(">_ Booting SLOPNET_OS Python Runtime (Pyodide)...\n", "line-system");
+      pyodide = await loadPyodide();
+      await pyodide.runPythonAsync(`
+import ast
+import builtins
+import sys
+from js import __js_print, __js_input
+
+class _WebStdout:
+    def write(self, s):
+        if s:
+            __js_print(str(s))
+    def flush(self):
+        pass
+
+sys.stdout = _WebStdout()
+sys.stderr = _WebStdout()
+
+class _AsyncInputTransformer(ast.NodeTransformer):
+    def visit_Call(self, node):
+        self.generic_visit(node)
+        if isinstance(node.func, ast.Name) and node.func.id == "input":
+            return ast.Await(
+                value=ast.Call(
+                    func=ast.Name(id="__web_input__", ctx=ast.Load()),
+                    args=node.args,
+                    keywords=node.keywords,
+                )
+            )
+        return node
+
+def _compile_async_game(source_code):
+    tree = ast.parse(source_code)
+    tree = _AsyncInputTransformer().visit(tree)
+    async_fn = ast.AsyncFunctionDef(
+        name="__game_main__",
+        args=ast.arguments(posonlyargs=[], args=[], kwonlyargs=[], kw_defaults=[], defaults=[]),
+        body=tree.body,
+        decorator_list=[],
+        returns=None,
+    )
+    mod = ast.Module(body=[async_fn], type_ignores=[])
+    ast.fix_missing_locations(mod)
+    return ast.unparse(mod)
+      `);
+    }
+
+    async function runGame() {
+      const myToken = ++runToken;
+      if (pendingResolver) {
+        pendingResolver.reject(new Error("Restarted"));
+        pendingResolver = null;
+      }
+
+      outputEl.innerHTML = "";
+      inputEl.disabled = true;
+      inputEl.value = "";
+      updateLangButtons();
+
+      if (!pyodide) {
+        statusEl.textContent = "LOADING";
+        await initPyodide();
+      }
+
+      if (myToken !== runToken) return;
+
+      const source = document.getElementById(currentLang === "de" ? "code-de" : "code-en").textContent;
+      statusEl.textContent = "RUNNING";
+
+      pyodide.globals.set("__current_token__", myToken);
+      await pyodide.runPythonAsync(`
+async def __web_input__(prompt=""):
+    return await __js_input(str(prompt), __current_token__)
+      `);
+
+      try {
+        pyodide.globals.set("__raw_source__", source);
+        await pyodide.runPythonAsync(`
+__transformed__ = _compile_async_game(__raw_source__)
+exec(__transformed__, globals())
+await __game_main__()
+        `);
+        if (myToken === runToken) {
+          appendText("\n>_ [PROCESS FINISHED — CLICK RESTART TO PLAY AGAIN]\n", "line-system");
+          statusEl.textContent = "FINISHED";
+          inputEl.disabled = true;
+          inputEl.placeholder = "Game finished. Click Restart.";
+        }
+      } catch (err) {
+        if (myToken === runToken && !String(err).includes("Game restarted")) {
+          appendText("\n[RUNTIME ERROR]\n" + err + "\n", "line-error");
+          statusEl.textContent = "ERROR";
+          inputEl.disabled = true;
+        }
+      }
+    }
+
+    function switchLang(lang) {
+      if (lang === currentLang && pyodide) return;
+      currentLang = lang;
+      const url = new URL(window.location);
+      url.searchParams.set("lang", lang);
+      window.history.replaceState({}, "", url);
+      runGame();
+    }
+
+    function restartGame() {
+      runGame();
+    }
+
+    updateLangButtons();
+    runGame();
+  </script>
+</body>
+</html>
