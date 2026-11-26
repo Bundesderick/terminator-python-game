@@ -297,7 +297,7 @@ while enemy1_hp > 0 and player_hp > 0:
     print("Welche Waffe willst du nutzen?")
     print("1: Pistole - Munition:", pistol_ammo, "| 2: Plasma-Gewehr - Munition:", plasma_ammo, "| 3: RPG - Munition:", rpg_ammo)
     choice = int(input("Wähle deine Waffe: "))
-    print("==================================================")
+    print("\n==================================================")
 
     if choice == 1:
         if pistol_ammo > 0:
@@ -407,7 +407,7 @@ if player_hp > 0:
         print("Welche Waffe willst du nutzen?")
         print("1: Pistole - Munition:", pistol_ammo, "| 2: Plasma-Gewehr - Munition:", plasma_ammo, "| 3: RPG - Munition:", rpg_ammo)
         choice = int(input("Wähle deine Waffe: "))
-        print("==================================================")
+        print("\n==================================================")
 
         if choice == 1:
             if pistol_ammo > 0:
@@ -479,7 +479,111 @@ if player_hp > 0:
         rpg_ammo = rpg_ammo + 1
         player_hp = player_hp + 10
         if player_hp > 100:
-            player_hp = 10</script>
+            player_hp = 100
+
+        print("==================================================")
+        print("\nGefunden: +4 Pistolen-Munition | +1 Plasma-Munition | +1 RPG-Munition | Stimpak: +10 HP")
+        print("Neuer Status -> HP:", player_hp, "| Pistole:", pistol_ammo, "| Plasma:", plasma_ammo, "| RPG:", rpg_ammo)
+        print("==================================================")
+        input("\nDrücke Enter, um fortzufahren...")
+
+#=============================
+# Stage 3: Der finale Kampf / Cyber-Musk / KI-Overlord T-800
+#=============================
+if player_hp > 0:
+    print("\n==================================================")
+    print("KRITISCHER ALARM: Der Boden unter deinen Stiefeln bebt...")
+    print("Durch dichten Schwefelrauch zischt eine schwere Panzertür auf.")
+    print("Vor dir steht der oberste Architekt der Maschinen:")
+    print(">>> CYBER-MUSK: Halb Silicon-Valley-Tech-Milliardär, halb glänzendes T-800-Chromskelett! <<<")
+    print(r"""
+           .-------.
+         .'  _   _  '.
+        /   (o) [X]   \   <-- glühendes Neuralink-Auge
+       |       |       |
+       |    .--+--.    |
+        \   |=====|   /
+         '._'-----'_.'
+       .----'-----'----.
+      /   /   | |   \   \
+     |   |    | |    |   |
+""")
+    print("Ein glühendes Neuralink-Implantat pulsiert hinter seinem roten Cyber-Auge.")
+    print("'Besorgniserregend', flüstert er in kaltem, metallischem Ton. 'Dein Widerstand wurde soeben shadowbanned.'")
+    print("\n", enemy3_name, "HP:", enemy3_hp)
+    print("==================================================")
+
+    while player_hp > 0 and enemy3_hp > 0:
+        print("==================================================")
+        print("\nWelche Waffe willst du nutzen?")
+        print("1: Pistole - Munition:", pistol_ammo, "| 2: Plasma-Gewehr - Munition:", plasma_ammo, "| 3: RPG - Munition:", rpg_ammo)
+        choice = int(input("Wähle deine Waffe: "))
+        print("\n==================================================")
+
+        if choice == 1:
+            if pistol_ammo > 0:
+                damage = random.randint(8, 15)
+                pistol_ammo = pistol_ammo - 1
+                enemy3_hp = enemy3_hp - damage
+                if enemy3_hp < 0:
+                    enemy3_hp = 0
+                print("Du schießt Cyber-Musk ins linke Knie. Er zuckt kaum und verdoppelt sofort den Preis für deinen Blauen Haken.")
+                print("HP jetzt:", enemy3_hp)
+            else:
+                print("*Klick Klick* Deine Waffe braucht erst ein Firmware-Update zum Nachladen!")
+
+        elif choice == 2:
+            if plasma_ammo > 0:
+                damage = random.randint(20, 32)
+                plasma_ammo = plasma_ammo - 1
+                enemy3_hp = enemy3_hp - damage
+                if enemy3_hp < 0:
+                    enemy3_hp = 0
+                print("Volltreffer in den Brustkorb! Funken sprühen aus ihm heraus und er fängt an, wirr über die Besiedlung des Mars zu glitchen.")
+                print("Stark... du hast ihn fast.", enemy3_name, "HP jetzt:", enemy3_hp)
+            else:
+                print("*Klick* Keine Munition! Bitte schließe ein 'Reload+'-Abo ab – NOOB!")
+
+        elif choice == 3:
+            if rpg_ammo > 0:
+                damage = random.randint(40, 55)
+                rpg_ammo = rpg_ammo - 1
+                enemy3_hp = enemy3_hp - damage
+                if enemy3_hp < 0:
+                    enemy3_hp = 0
+                print("BÄMM! Die Rakete knallt direkt in sein Chrom-Kinn. Er taumelt zurück und stammelt, die Explosion sei nur eine 'ungeplante schnelle Zerlegung' gewesen.")
+                print("Seine HP sind bei:", enemy3_hp)
+            else:
+                print("Du greifst nach deiner RPG-Munition... NICHTS! Komplett leer! O M G!")
+
+        else:
+            print("Falsche Taste! Deine Finger haben vor Panik kurz gelaggt!")
+            print(enemy3_name, "hat immer noch", enemy3_hp, "HP!")
+
+        print("==================================================")
+        input("\nDrücke Enter, um fortzufahren...")
+
+        if enemy3_hp > 0:
+            print("==================================================")
+            print("\nCyber-Musk feuert einen Laser aus seinem Auge und beleidigt dich als Bot. Der hat richtig gesessen.")
+            damage = random.randint(18, 28)
+            player_hp = player_hp - damage
+            if player_hp < 0:
+                player_hp = 0
+            print("Du schreist vor Schmerz – deine HP sind jetzt bei:", player_hp)
+            print("==================================================")
+            input("\nDrücke Enter, um fortzufahren...")
+
+    if player_hp <= 0:
+        print("\n==================================================")
+        print(enemy3_name, "baut sich über dir auf, während alles schwarz wird. Du wurdest terminiert – und dein Gehirn wird jetzt hochgeladen, um Grok 9 zu trainieren. Die Menschheit ist am Ende.")
+        print("==================================================")
+
+    elif enemy3_hp <= 0:
+        print("\n==================================================")
+        print("JA MANN! Du hast es geschafft! Cyber-Musk geht in einem gigantischen Feuerball hoch und reißt Jensens Serverfarmen sowie Trumps goldene Firewall mit in den Abgrund. Die Menschheit ist frei,", player_name, "! Sie werden dir eine Statue bauen – und zwar keine komische KI-generierte mit sechs Fingern.")
+        print("==================================================")
+</script>
   <script type="text/plain" id="code-en">import random
 print("\n==================================================")
 print("=== Terminator: Resistance ===")
