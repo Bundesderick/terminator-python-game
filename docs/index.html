@@ -933,11 +933,11 @@ if player_hp > 0:
       outputEl.scrollTop = outputEl.scrollHeight;
     }
 
-    window.__js_print = (text) => {
+    window.js_print = (text) => {
       appendText(text);
     };
 
-    window.__js_input = (promptText, myToken) => {
+    window.js_input = (promptText, myToken) => {
       if (promptText) appendText(promptText);
       if (myToken !== runToken) {
         return Promise.reject(new Error("Game restarted"));
@@ -974,12 +974,12 @@ if player_hp > 0:
 import ast
 import builtins
 import sys
-from js import __js_print, __js_input
+from js import js_print, js_input
 
 class _WebStdout:
     def write(self, s):
         if s:
-            __js_print(str(s))
+            js_print(str(s))
     def flush(self):
         pass
 
@@ -992,7 +992,7 @@ class _AsyncInputTransformer(ast.NodeTransformer):
         if isinstance(node.func, ast.Name) and node.func.id == "input":
             return ast.Await(
                 value=ast.Call(
-                    func=ast.Name(id="__web_input__", ctx=ast.Load()),
+                    func=ast.Name(id="web_input", ctx=ast.Load()),
                     args=node.args,
                     keywords=node.keywords,
                 )
@@ -1037,10 +1037,10 @@ def _compile_async_game(source_code):
       const source = document.getElementById(currentLang === "de" ? "code-de" : "code-en").textContent;
       statusEl.textContent = "RUNNING";
 
-      pyodide.globals.set("__current_token__", myToken);
+      pyodide.globals.set("current_run_token", myToken);
       await pyodide.runPythonAsync(`
-async def __web_input__(prompt=""):
-    return await __js_input(str(prompt), __current_token__)
+async def web_input(prompt=""):
+    return await js_input(str(prompt), current_run_token)
       `);
 
       try {
