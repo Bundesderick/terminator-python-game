@@ -76,6 +76,7 @@ while enemy1_hp > 0 and player_hp > 0:
     print("What weapon would you like to use?")
     print("1: Pistol - Ammo left: ",pistol_ammo," | 2: Plasma Rifle - Ammo left: ", plasma_ammo, " | 3: RPG - Ammo left: ",rpg_ammo)
     choice = int(input("Choose your choice: "))
+    print("==================================================")
     if choice == 1:
         if pistol_ammo > 0:
             damage = random.randint(8, 15)
@@ -187,6 +188,7 @@ if player_hp > 0:
         print("What weapon would you like to use?")
         print("1: Pistol - Ammo left: ",pistol_ammo," | 2: Plasma Rifle - Ammo left: ", plasma_ammo, " | 3: RPG - Ammo left: ",rpg_ammo)
         choice = int(input("Choose your choice: "))
+        print("==================================================")
 
         if choice == 1:
             if pistol_ammo > 0:
@@ -297,6 +299,7 @@ if player_hp > 0:
         print("1: Pistol - Ammo left: ", pistol_ammo, " | 2: Plasma Rifle - Ammo left: ", plasma_ammo,
               " | 3: RPG - Ammo left: ", rpg_ammo)
         choice = int(input("Enter your weapon choice: "))
+        print("==================================================")
 
         if choice == 1:
             if pistol_ammo > 0:
