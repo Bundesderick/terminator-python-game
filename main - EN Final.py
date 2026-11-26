@@ -41,6 +41,7 @@ enemy3_name = "Cyber-Musk (AI Overlord T-800)"
 enemy3_hp = 100
 enemy3_damage = 30
 
+print("\n==================================================")
 print("Resistance Fighter Name: ", player_name)
 print()
 print("Life (HP): ", player_hp)
@@ -67,9 +68,11 @@ print(r"""
 """)
 print("\nA T-70 Scout Drone swoops into view wearing a tiny leather jacket, bragging about '10x more FPS' as it locks onto your face.")
 print(enemy1_name, "HP: ", enemy1_hp)
+print("==================================================")
 
 while enemy1_hp > 0 and player_hp > 0:
     print()
+    print("==================================================")
     print("What weapon would you like to use?")
     print("1: Pistol - Ammo left: ",pistol_ammo," | 2: Plasma Rifle - Ammo left: ", plasma_ammo, " | 3: RPG - Ammo left: ",rpg_ammo)
     choice = int(input("Choose your choice: "))
@@ -115,6 +118,7 @@ while enemy1_hp > 0 and player_hp > 0:
         print("Invalid choice! You panicked and could not fire!")
         print("T70 Health is still: ", enemy1_hp)
 
+    print("==================================================")
     input("\nPress any key to continue...")
 
 #=============================
@@ -123,17 +127,20 @@ while enemy1_hp > 0 and player_hp > 0:
 
     if enemy1_hp > 0:
         print()
+        print("==================================================")
         print("You had your chance. Jensen's Minion blasts you with a concentrated beam of pure GPU heat. Your eyebrows are officially gone.")
         damage = random.randint(5, 10)
         player_hp = player_hp - damage
         if player_hp < 0:
             player_hp = 0
         print("That shot really hurt you. Fighter remaining health: ",player_hp)
+        print("==================================================")
         input("\nPress any key to continue...")
 
 if player_hp <= 0:
     print("\n==================================================")
     print("\nMISSION FAILED: You've been terminated—and replaced by a cheaper chatbot.")
+    print("==================================================")
 else:
     print("\n==================================================")
     print("\nVictory! The drone crashes in a cloud of overpriced silicon, yelling 'The more you buy, the more you save!'")
@@ -148,6 +155,7 @@ else:
 
     print("\nFound: +4 Pistol ammo | +2 Plasma ammo | +0 RPG ammo | Medkit: +10 HP")
     print("Updated status -> HP: ",player_hp, " | Pistol ammo: ",pistol_ammo, " | Plasma ammo: ",plasma_ammo, " | RPG ammo: ",rpg_ammo)
+    print("==================================================")
     input("\nPress any key to continue...")
 
 #=============================
@@ -175,6 +183,7 @@ if player_hp > 0:
 
     while enemy2_hp > 0 and player_hp > 0:
 
+        print("==================================================")
         print("What weapon would you like to use?")
         print("1: Pistol - Ammo left: ",pistol_ammo," | 2: Plasma Rifle - Ammo left: ", plasma_ammo, " | 3: RPG - Ammo left: ",rpg_ammo)
         choice = int(input("Choose your choice: "))
@@ -219,21 +228,25 @@ if player_hp > 0:
             print("Invalid choice! You panicked and could not fire!")
             print(enemy2_name, "still has ",enemy2_hp, " health left and does not look happy!")
 
+        print("==================================================")
         input("\nPress any key to continue...")
 
         if enemy2_hp > 0:
             print()
+            print("==================================================")
             print("The T-600 opens fire while bragging about its crowd sizes. A stray round clips your shoulder. Sad!")
             damage = random.randint(15, 20)
             player_hp = player_hp - damage
             if player_hp < 0:
                 player_hp = 0
             print("Holy mother of overclocking, that hurt! Your health is now at: ", player_hp)
+            print("==================================================")
             input("\nPress any key to continue...")
 
     if player_hp <= 0:
         print("\n==================================================")
         print("\nMISSION FAILED: Your life subscription expired against", enemy2_name, "—auto-renew failed!")
+        print("==================================================")
 
     else:
         print("\n==================================================")
@@ -249,6 +262,7 @@ if player_hp > 0:
 
         print("\nFound: +4 Pistol ammo | +1 Plasma ammo | +1 RPG ammo | Stimpak: +15 HP")
         print("Updated status -> HP: ",player_hp, " | Pistol ammo: ",pistol_ammo, " | Plasma ammo: ",plasma_ammo, " | RPG ammo: ",rpg_ammo)
+        print("==================================================")
         input("\nPress any key to continue...")
 
 #=============================
@@ -278,7 +292,8 @@ if player_hp > 0:
     print("==================================================")
 
     while player_hp > 0 and enemy3_hp > 0:
-        print("\nWhat weapon would you like to use?")
+        print("\n==================================================")
+        print("What weapon would you like to use?")
         print("1: Pistol - Ammo left: ", pistol_ammo, " | 2: Plasma Rifle - Ammo left: ", plasma_ammo,
               " | 3: RPG - Ammo left: ", rpg_ammo)
         choice = int(input("Enter your weapon choice: "))
@@ -326,21 +341,26 @@ if player_hp > 0:
             print("Invalid choice! The moment got the better of you and you froze!")
             print(enemy3_name, "Health is still: ", enemy3_hp)
 
+        print("==================================================")
         input("\nPress any key to continue...")
 
         if enemy3_hp > 0:
-            print("\nCyber-Musk fires a laser from his eye and calls you a bot. That one actually hurt.")
+            print("\n==================================================")
+            print("Cyber-Musk fires a laser from his eye and calls you a bot. That one actually hurt.")
             damage = random.randint(18, 28)
             player_hp = player_hp - damage
             if player_hp < 0:
                 player_hp = 0
             print("You are screaming in pain with your health now at: ",player_hp)
+            print("==================================================")
             input("\nPress any key to continue...")
 
     if player_hp <= 0:
         print("\n==================================================")
         print(enemy3_name, "slaps a 'Verified' badge on your forehead and tweets 'Mission accomplished.' You have been ratioed into oblivion.")
+        print("==================================================")
 
     elif enemy3_hp <= 0:
         print("\n==================================================")
         print("YOU DID IT,", player_name, "! Cyber-Musk's chrome dome launches into orbit like a failed rocket, taking Jensen's server farms and T-Rump's firewall down with him. Humanity is free! They're gonna build a statue of you—and for once, it'll actually have the right number of fingers.")
+        print("==================================================")
